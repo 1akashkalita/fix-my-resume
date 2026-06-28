@@ -14,9 +14,9 @@ export function AppShell({
     <div className="wrap">
       <header className="top">
         <div className="mark">
-          Hiring <i>Agent</i>
+          Fix My <i>Resume</i>
         </div>
-        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+        <div className="top-right">
           <nav className="nav" aria-label="Primary">
             <Link
               href="/"

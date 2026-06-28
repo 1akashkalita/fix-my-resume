@@ -28,8 +28,8 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
       <div className="runs">
         {[...rows].reverse().map(({ run, prev, total, delta }) => {
           const isCur = run.id === currentId;
-          return (
-            <div key={run.id} className={isCur ? "run cur" : "run"}>
+          const body = (
+            <>
               <div className="run-v mono">{run.label || run.fileName}</div>
               <div className="run-meta mono">{fmtDate(run.createdAt)}</div>
               <div className="run-delta">
@@ -38,16 +38,35 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
                   &nbsp;{total}/{MAX_TOTAL}
                 </span>
               </div>
-              {isCur && prev && (
-                <Link
-                  className="compare mono"
-                  href={`/diff?a=${run.id}&b=${prev.id}`}
-                  aria-label="Compare with previous revision"
-                >
-                  <span aria-hidden="true">⇄</span> diff
-                </Link>
-              )}
-            </div>
+            </>
+          );
+          // The current revision isn't a link (you're already on it); it carries
+          // the compare-to-previous action. Every other revision links to its report.
+          if (isCur) {
+            return (
+              <div key={run.id} className="run cur">
+                {body}
+                {prev && (
+                  <Link
+                    className="compare mono"
+                    href={`/diff?a=${run.id}&b=${prev.id}`}
+                    aria-label="Compare with previous revision"
+                  >
+                    <span aria-hidden="true">⇄</span> diff
+                  </Link>
+                )}
+              </div>
+            );
+          }
+          return (
+            <Link
+              key={run.id}
+              className="run run-link"
+              href={`/results?run=${run.id}`}
+              aria-label={`View ${run.label || run.fileName}`}
+            >
+              {body}
+            </Link>
           );
         })}
       </div>
@@ -58,13 +77,19 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
         .run{position:relative;padding:0 0 18px 4px}
         .run:before{content:"";position:absolute;left:-18px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--paper);border:2px solid var(--ink-soft)}
         .run.cur:before{background:var(--brand);border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-tint)}
-        .run-v{font-weight:500;font-size:13px}
+        .run-link{display:block;text-decoration:none;color:inherit;border-radius:6px}
+        .run-link:hover .run-v{color:var(--brand-ink)}
+        .run-link:hover:before{border-color:var(--brand-ink)}
+        .run-link:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+        .run-v{font-weight:500;font-size:13px;overflow-wrap:anywhere}
         .run.cur .run-v{color:var(--brand-ink)}
         .run-meta{font-size:11px;color:var(--ink-soft);margin-top:1px}
         .run-delta{margin-top:2px;font-size:11px}
         .soft{color:var(--ink-soft);font-weight:500}
-        .compare{display:inline-block;margin-top:6px;font-size:11px;color:var(--brand-ink);border:1px dashed var(--brand);border-radius:7px;padding:7px 9px;background:var(--brand-tint);text-decoration:none}
+        .compare{display:inline-block;margin-top:6px;font-size:11px;color:var(--brand-ink);border:1px dashed var(--brand);border-radius:7px;padding:7px 9px;background:var(--brand-tint);text-decoration:none;transition:background .15s ease,color .15s ease}
+        .compare:hover{background:var(--brand);color:var(--paper)}
         .compare:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+        @media (prefers-reduced-motion: reduce){ .compare{transition:none} }
         @media(max-width:760px){ .runs:before{display:none} }
       `}</style>
     </aside>

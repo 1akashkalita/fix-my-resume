@@ -34,6 +34,7 @@ export function HistoryTable({
   }
 
   return (
+    <div className="ha-htable-wrap">
     <table className="ha-htable">
       <thead>
         <tr>
@@ -81,6 +82,7 @@ export function HistoryTable({
         })}
       </tbody>
       <style>{`
+        .ha-htable-wrap{overflow-x:auto}
         .ha-htable{width:100%;border-collapse:collapse}
         .ha-htable th{font-family:var(--font-jetbrains-mono),monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);text-align:left;font-weight:500;padding:0 12px 10px;border-bottom:1px solid var(--rule)}
         .ha-htable th.r,.ha-htable td.r{text-align:right}
@@ -91,16 +93,22 @@ export function HistoryTable({
         .ha-h-rename{font-family:var(--font-archivo),sans-serif;color:var(--ink-soft);font-size:11px;margin-left:8px;background:transparent;border:none;border-bottom:1px dotted var(--ink-soft);padding:0;cursor:pointer;opacity:0;transition:opacity .15s}
         .ha-htable tr:hover .ha-h-rename,
         .ha-h-rename:focus-visible{opacity:1}
+        .ha-h-rename:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:2px}
+        /* Touch devices have no hover — keep the rename action discoverable. */
+        @media (hover:none){.ha-h-rename{opacity:1}}
         .ha-h-date{font-family:var(--font-jetbrains-mono),monospace;color:var(--ink-soft);font-size:12.5px}
         .ha-h-total{font-family:var(--font-jetbrains-mono),monospace;font-weight:700;font-size:15px}
         .ha-h-act{font-family:var(--font-jetbrains-mono),monospace;font-size:11.5px;color:var(--ink);text-decoration:none;background:transparent;border:1px solid var(--rule);padding:5px 10px;border-radius:7px;cursor:pointer}
         .ha-h-act:hover{border-color:var(--brand);color:var(--brand-ink)}
+        .ha-h-act:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
         .ha-h-act.diff{color:var(--ink-soft)}
-        .ha-h-act.del{color:var(--bad)}
-        .ha-h-act.del:hover{border-color:var(--bad);color:var(--bad)}
+        .ha-h-act.del{color:var(--bad-ink)}
+        .ha-h-act.del:hover{border-color:var(--bad);color:var(--bad-ink)}
+        .ha-h-act.del:focus-visible{outline-color:var(--bad)}
         @media(max-width:760px){.ha-h-date.hide,.ha-htable .hide{display:none}}
         @media (prefers-reduced-motion: reduce){.ha-h-rename{transition:none}}
       `}</style>
     </table>
+    </div>
   );
 }

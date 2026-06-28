@@ -12,6 +12,8 @@ export function SettingsScreen() {
   const [saved, setSaved] = useState(false);
   const [cleared, setCleared] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showKey, setShowKey] = useState(false);
+  const [showToken, setShowToken] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clear the pending "Saved" timer if we unmount before it fires.
@@ -77,16 +79,27 @@ export function SettingsScreen() {
               foot="Free tier available · the key is sent only to Google, never to us"
             />
           </span>
-          <input
-            id="ha-gemini-key"
-            type="password"
-            className="ha-input mono"
-            placeholder="AIza…"
-            autoComplete="off"
-            spellCheck={false}
-            value={settings.geminiKey}
-            onChange={(e) => edit({ geminiKey: e.target.value })}
-          />
+          <div className="ha-input-wrap">
+            <input
+              id="ha-gemini-key"
+              type={showKey ? "text" : "password"}
+              className="ha-input has-reveal mono"
+              placeholder="AIza…"
+              autoComplete="off"
+              spellCheck={false}
+              value={settings.geminiKey}
+              onChange={(e) => edit({ geminiKey: e.target.value })}
+            />
+            <button
+              type="button"
+              className="ha-reveal mono"
+              onClick={() => setShowKey((v) => !v)}
+              aria-pressed={showKey}
+              aria-label={showKey ? "Hide API key" : "Show API key"}
+            >
+              {showKey ? "Hide" : "Show"}
+            </button>
+          </div>
           <span className="ha-hint">
             Scoring calls Google Gemini directly from your browser with this key. Create one at
             aistudio.google.com — it never leaves this device.
@@ -127,16 +140,27 @@ export function SettingsScreen() {
               foot="Optional · used only when GitHub enrichment is on"
             />
           </span>
-          <input
-            id="ha-github-token"
-            type="password"
-            className="ha-input mono"
-            placeholder="ghp_…"
-            autoComplete="off"
-            spellCheck={false}
-            value={settings.githubToken}
-            onChange={(e) => edit({ githubToken: e.target.value })}
-          />
+          <div className="ha-input-wrap">
+            <input
+              id="ha-github-token"
+              type={showToken ? "text" : "password"}
+              className="ha-input has-reveal mono"
+              placeholder="ghp_…"
+              autoComplete="off"
+              spellCheck={false}
+              value={settings.githubToken}
+              onChange={(e) => edit({ githubToken: e.target.value })}
+            />
+            <button
+              type="button"
+              className="ha-reveal mono"
+              onClick={() => setShowToken((v) => !v)}
+              aria-pressed={showToken}
+              aria-label={showToken ? "Hide GitHub token" : "Show GitHub token"}
+            >
+              {showToken ? "Hide" : "Show"}
+            </button>
+          </div>
           <span className="ha-hint">
             Lets the scorer read your public GitHub signal and raises the rate limit from 60 to
             5,000 requests/hour. Used only when GitHub enrichment is on.
@@ -244,8 +268,13 @@ export function SettingsScreen() {
         .ha-req{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--bad);background:var(--bad-tint);border-radius:999px;padding:2px 8px}
         .ha-opt{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);background:var(--panel-2);border-radius:999px;padding:2px 8px}
         .ha-input{width:100%;box-sizing:border-box;background:var(--panel-2);border:1px solid var(--rule);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--ink)}
-        .ha-input::placeholder{color:var(--ink-soft);opacity:.7}
+        .ha-input::placeholder{color:var(--ink-soft);opacity:.85}
         .ha-input:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-color:var(--brand)}
+        .ha-input-wrap{position:relative;display:flex;align-items:center}
+        .ha-input.has-reveal{padding-right:62px}
+        .ha-reveal{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--ink-soft);font-size:11.5px;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:6px}
+        .ha-reveal:hover{color:var(--ink)}
+        .ha-reveal:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
         .ha-select{width:100%;box-sizing:border-box;background:var(--panel-2);border:1px solid var(--rule);border-radius:10px;padding:11px 36px 11px 13px;font-size:14px;color:var(--ink);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%238A93A3' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;background-size:12px}
         .ha-select:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-color:var(--brand)}
         .ha-hint{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
@@ -260,8 +289,8 @@ export function SettingsScreen() {
         .ha-btn-danger{flex:none;background:var(--bad-tint);color:var(--bad);border:1px solid var(--bad);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer}
         .ha-btn-danger:hover{background:var(--bad);color:var(--paper)}
         .ha-btn-danger:focus-visible{outline:2px solid var(--bad);outline-offset:3px}
-        .ha-cleared{margin:0;font-size:12.5px;color:var(--good)}
-        .ha-saved{min-height:18px;font-size:12.5px;color:var(--good);text-align:right;transition:opacity .2s ease}
+        .ha-cleared{margin:0;font-size:12.5px;color:var(--good-ink)}
+        .ha-saved{min-height:18px;font-size:12.5px;color:var(--good-ink);text-align:right;transition:opacity .2s ease}
         @media (prefers-reduced-motion: reduce){
           .ha-check,.ha-check::after,.ha-saved{transition:none}
         }

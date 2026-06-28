@@ -5,25 +5,26 @@ import { fetchGitHubSummary } from "./github";
 import { JSONResumeSchema, EvaluationSchema, CoachSchema, type RunRecord } from "./schemas";
 import { buildExtractionPrompt, buildScoringPrompt, buildCoachPrompt } from "./prompts";
 
-export async function runScoreWithRealDeps(file: File, settings: Settings, onProgress?: (s: string) => void): Promise<RunRecord> {
+export async function runScoreWithRealDeps(file: File, settings: Settings, onProgress?: (s: string) => void, signal?: AbortSignal): Promise<RunRecord> {
   const ai = makeAI(settings.geminiKey);
   const model = settings.model || DEFAULT_MODEL;
   return scoreResume(file, {
     settings,
     fileName: file.name,
     onProgress,
+    signal,
     extractText: extractTextFromPdf,
     runExtraction: async (text) => {
       const p = buildExtractionPrompt(text);
-      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => JSONResumeSchema.parse(v) });
+      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => JSONResumeSchema.parse(v), abortSignal: signal });
     },
     runScoring: async (text) => {
       const p = buildScoringPrompt(text);
-      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => EvaluationSchema.parse(v) });
+      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => EvaluationSchema.parse(v), abortSignal: signal });
     },
     runCoach: async (text, evalJson) => {
       const p = buildCoachPrompt(text, evalJson);
-      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => CoachSchema.parse(v) });
+      return callGeminiJSON({ ai, model, system: p.system, user: p.user, responseSchema: p.responseSchema, validate: (v) => CoachSchema.parse(v), abortSignal: signal });
     },
     fetchGitHub: (url) => fetchGitHubSummary(url, { token: settings.githubToken }),
     genId: () => crypto.randomUUID(),

@@ -4,6 +4,9 @@ import {
   RateLimitError,
   ModelOverloadedError,
   ModelOutputError,
+  InvalidKeyError,
+  OfflineError,
+  NotAResumeError,
 } from "./errors";
 
 const GENERIC = "Something went wrong. Please try again.";
@@ -33,6 +36,30 @@ export function describeError(err: unknown): ErrorInfo {
         "This PDF has no selectable text. Image-only or scanned PDFs aren't supported — export a text PDF and try again.",
       retryLabel: null,
       tone: "bad",
+    };
+  }
+  if (err instanceof NotAResumeError) {
+    return {
+      message:
+        "This doesn't look like a resume — double-check the file you uploaded.",
+      retryLabel: null,
+      tone: "bad",
+    };
+  }
+  if (err instanceof InvalidKeyError) {
+    return {
+      message:
+        "Your Gemini API key looks invalid. Open Settings and check it — you can paste it again to be sure.",
+      retryLabel: null,
+      tone: "bad",
+    };
+  }
+  if (err instanceof OfflineError) {
+    return {
+      message:
+        "You appear to be offline. Scoring needs to reach Google — reconnect and try again.",
+      retryLabel: "Try again",
+      tone: "warn",
     };
   }
   if (err instanceof ModelOverloadedError) {

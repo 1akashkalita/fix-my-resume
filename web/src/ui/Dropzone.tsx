@@ -1,6 +1,10 @@
 "use client";
 import { useRef, useState } from "react";
 
+// Resumes are tiny; a huge PDF is almost always the wrong file (a scanned
+// portfolio, a slide deck) and would freeze the tab parsing in-browser.
+const MAX_MB = 15;
+
 function firstPdf(list: FileList | null): File | null {
   if (!list) return null;
   for (const f of Array.from(list)) {
@@ -28,6 +32,10 @@ export function Dropzone({
   function accept(list: FileList | null) {
     const file = firstPdf(list);
     if (file) {
+      if (file.size > MAX_MB * 1024 * 1024) {
+        onReject?.(`That PDF is over ${MAX_MB}MB — resumes are usually well under 1MB. Try exporting a lighter file.`);
+        return;
+      }
       onFile(file);
     } else if (list && list.length > 0) {
       onReject?.("Please choose a PDF file.");

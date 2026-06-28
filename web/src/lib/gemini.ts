@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GeminiSchema } from "./prompts";
-import { RateLimitError, ModelOverloadedError, ModelOutputError } from "./errors";
+import { RateLimitError, ModelOverloadedError, ModelOutputError, InvalidKeyError, OfflineError } from "./errors";
 
 export const DEFAULT_MODEL = "gemini-2.5-flash";
 
@@ -33,6 +33,30 @@ function isOverloaded(e: unknown): boolean {
   return any?.status === 503 || /unavailable|overloaded|high demand/i.test(any?.message ?? "");
 }
 
+// 400/401/403 + "API key not valid" / PERMISSION_DENIED mean the key is wrong —
+// permanent, so it must NOT be retried (it would just burn the backoff budget).
+function isInvalidKey(e: unknown): boolean {
+  const any = e as { status?: number; message?: string };
+  return (
+    any?.status === 400 || any?.status === 401 || any?.status === 403 ||
+    /api[_ ]?key not valid|api_key_invalid|invalid api key|permission_denied|unauthenticated/i.test(any?.message ?? "")
+  );
+}
+
+// In-browser fetch failures surface as `TypeError: Failed to fetch` (offline,
+// DNS, CORS). Distinct from a rate limit — the request never reached Google.
+function isOffline(e: unknown): boolean {
+  const msg = (e as { message?: string })?.message ?? "";
+  return (
+    (typeof navigator !== "undefined" && navigator.onLine === false) ||
+    /failed to fetch|networkerror|network request failed|load failed/i.test(msg)
+  );
+}
+
+function isAbort(e: unknown): boolean {
+  return e instanceof DOMException ? e.name === "AbortError" : (e as { name?: string })?.name === "AbortError";
+}
+
 export async function callGeminiJSON<T>(opts: {
   ai: AILike;
   model: string;
@@ -42,8 +66,9 @@ export async function callGeminiJSON<T>(opts: {
   validate: (value: unknown) => T;
   maxRetries?: number;
   sleep?: (ms: number) => Promise<void>;
+  abortSignal?: AbortSignal;
 }): Promise<T> {
-  const { ai, model, system, user, responseSchema, validate } = opts;
+  const { ai, model, system, user, responseSchema, validate, abortSignal } = opts;
   const maxRetries = opts.maxRetries ?? 5;
   const sleep = opts.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
   // Browser-tuned backoff. The Python GeminiProvider uses 10s base / 120s cap;
@@ -64,6 +89,7 @@ export async function callGeminiJSON<T>(opts: {
           responseSchema,
           temperature: 0.1,
           topP: 0.9,
+          abortSignal,
         },
       });
       const text = (res.text ?? "").trim();
@@ -81,6 +107,12 @@ export async function callGeminiJSON<T>(opts: {
     } catch (e) {
       lastErr = e;
       if (e instanceof ModelOutputError) throw e;
+      // A user-triggered cancel must propagate untouched, not be retried.
+      if (isAbort(e)) throw e;
+      // Wrong key / no network are permanent for this run — fail fast with
+      // actionable copy instead of burning the backoff budget on retries.
+      if (isInvalidKey(e)) throw new InvalidKeyError();
+      if (isOffline(e)) throw new OfflineError();
       // Both rate limits and overload are transient — back off and retry.
       const transient = isRateLimit(e) || isOverloaded(e);
       if (transient && attempt < maxRetries - 1) {

@@ -1,6 +1,6 @@
 import type { JSONResume, Evaluation, Coach, RunRecord, GitHubSummary } from "./schemas";
 import { normalizeResume } from "./normalize";
-import { MissingKeyError } from "./errors";
+import { MissingKeyError, NotAResumeError } from "./errors";
 
 export type Settings = { geminiKey: string; githubToken: string | null; model: string; enableGitHub: boolean };
 
@@ -15,6 +15,7 @@ export type PipelineDeps = {
   genId: () => string;
   now: () => number;
   onProgress?: (stage: string) => void;
+  signal?: AbortSignal;
 };
 
 function findGitHubProfileUrl(resume: JSONResume): string | null {
@@ -23,9 +24,16 @@ function findGitHubProfileUrl(resume: JSONResume): string | null {
   return p?.url ?? null;
 }
 
+// Cancel checkpoint between stages: a user who hits Cancel stops before the next
+// (expensive) LLM call fires, even if the in-flight one isn't itself abortable.
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+}
+
 export async function scoreResume(pdf: File | ArrayBuffer, deps: PipelineDeps): Promise<RunRecord> {
   if (!deps.settings.geminiKey) throw new MissingKeyError();
 
+  throwIfAborted(deps.signal);
   deps.onProgress?.("Reading PDF");
   const resumeText = await deps.extractText(pdf);
 
@@ -35,6 +43,7 @@ export async function scoreResume(pdf: File | ArrayBuffer, deps: PipelineDeps): 
   let parsedResume: JSONResume = {};
   let githubSummary: GitHubSummary | null = null;
   if (deps.settings.enableGitHub) {
+    throwIfAborted(deps.signal);
     deps.onProgress?.("Extracting resume");
     parsedResume = normalizeResume(await deps.runExtraction(resumeText));
     const url = findGitHubProfileUrl(parsedResume);
@@ -56,9 +65,15 @@ export async function scoreResume(pdf: File | ArrayBuffer, deps: PipelineDeps): 
     scoringText += gh;
   }
 
+  throwIfAborted(deps.signal);
   deps.onProgress?.("Scoring");
   const evaluation = await deps.runScoring(scoringText);
 
+  // Bail before the coaching call if the model says this isn't a resume — no
+  // point coaching, and the score would be meaningless.
+  if (evaluation.is_resume === false) throw new NotAResumeError();
+
+  throwIfAborted(deps.signal);
   deps.onProgress?.("Coaching");
   // The coach sees the same (possibly GitHub-enriched) text as the scorer so its
   // advice stays consistent with what was actually scored.

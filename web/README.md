@@ -1,18 +1,18 @@
-# Hiring Agent — Web UI
+# Fix My Resume — Web UI
 
 A **privacy-first, in-browser resume scorer**. Upload a resume PDF and get an
 explainable, fairness-constrained score, a plain-language coach, and trend
 tracking over time — all running entirely in your browser. Your resume and your
 API key never touch a server we control.
 
-> **Live demo:** **https://hiring-agent-web.vercel.app**
+> **Live demo:** **https://fixmyresume.dev**
 
 ---
 
 ## What this is (and why it exists)
 
-The original [Hiring Agent](../README.md) is a Python **CLI** resume-to-score
-pipeline. This fork adds a **browser front-end** for it so non-developers can use
+The [command-line version](../README.md) is a Python **CLI** resume-to-score
+pipeline. This web app adds a **browser front-end** for it so non-developers can use
 the tool without installing Python, Ollama, or anything else — while keeping the
 strongest possible privacy guarantee.
 
@@ -147,7 +147,7 @@ npm run e2e                                     # Playwright smoke (stubbed Gemi
 
 ## Deploy to Vercel
 
-A production build is **live at https://hiring-agent-web.vercel.app**, deployed
+A production build is **live at https://fixmyresume.dev**, deployed
 from this repo via Vercel's GitHub integration (Root Directory `web/`).
 
 This app is the `web/` subdirectory of the repo. The settings are pinned in

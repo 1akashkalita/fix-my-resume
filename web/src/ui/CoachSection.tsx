@@ -7,8 +7,21 @@ export function CoachSection({ coach, evaluation }: { coach: Coach; evaluation: 
   return (
     <section className="coach">
       <div className="eyebrow">Coach · what to fix next</div>
-      <h2 className="coach-sub serif">Biggest score left on the table</h2>
-      <p className="coach-note">High-impact fixes, in priority order.</p>
+      {coach.fixes.length > 0 ? (
+        <>
+          <h2 className="coach-sub serif">Biggest score left on the table</h2>
+          <p className="coach-note">High-impact fixes, in priority order.</p>
+        </>
+      ) : (
+        <>
+          <h2 className="coach-sub serif">Nothing urgent to fix</h2>
+          <p className="coach-note">
+            {coach.boosts.length > 0
+              ? "Your strongest categories are already near the cap — see the small boosts below."
+              : "This resume scores well across the board — no high-impact fixes stand out."}
+          </p>
+        </>
+      )}
 
       {coach.fixes.map((fix, i) => (
         <div

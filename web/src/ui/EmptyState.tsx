@@ -4,7 +4,7 @@ import Link from "next/link";
 export function EmptyState({ message }: { message: string }) {
   return (
     <div className="empty">
-      <p>{message}</p>
+      <h1 className="serif empty-h1">{message}</h1>
       <Link className="empty-link" href="/">
         ← Score a resume
       </Link>

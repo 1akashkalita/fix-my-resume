@@ -65,7 +65,7 @@ export function HistoryScreen() {
     return <EmptyState message={error} />;
   }
 
-  if (runs === null) return null;
+  if (runs === null) return <p className="empty">Loading history…</p>;
 
   if (runs.length === 0) {
     return (
@@ -80,8 +80,9 @@ export function HistoryScreen() {
           .ha-empty{margin:60px auto;max-width:480px;text-align:center}
           .ha-empty-title{font-weight:400;font-size:clamp(28px,3.6vw,40px);line-height:1.05;margin:6px 0 10px}
           .ha-empty-text{color:var(--ink-soft);margin:0 0 22px}
-          .ha-empty-cta{font-family:var(--font-jetbrains-mono),monospace;font-size:13px;color:var(--brand-ink);background:var(--brand-tint);border:1px solid color-mix(in srgb,var(--brand) 32%,transparent);padding:9px 16px;border-radius:9px;text-decoration:none}
+          .ha-empty-cta{font-family:var(--font-jetbrains-mono),monospace;font-size:13px;color:var(--brand-ink);background:var(--brand-tint);border:1px solid color-mix(in srgb,var(--brand) 32%,transparent);padding:9px 16px;border-radius:9px;text-decoration:none;display:inline-block}
           .ha-empty-cta:hover{border-color:var(--brand)}
+          .ha-empty-cta:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
         `}</style>
       </div>
     );

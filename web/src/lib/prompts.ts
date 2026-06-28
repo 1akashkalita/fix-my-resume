@@ -24,6 +24,7 @@ const CATEGORY_SCORE_SCHEMA = { type: "OBJECT", properties: { score: { type: "NU
 export const EVAL_SCHEMA: GeminiSchema = {
   type: "OBJECT",
   properties: {
+    is_resume: { type: "BOOLEAN" },
     scores: {
       type: "OBJECT",
       properties: { open_source: CATEGORY_SCORE_SCHEMA, self_projects: CATEGORY_SCORE_SCHEMA, production: CATEGORY_SCORE_SCHEMA, technical_skills: CATEGORY_SCORE_SCHEMA },
@@ -34,7 +35,7 @@ export const EVAL_SCHEMA: GeminiSchema = {
     key_strengths: { type: "ARRAY", items: { type: "STRING" }, minItems: 1, maxItems: 5 },
     areas_for_improvement: { type: "ARRAY", items: { type: "STRING" }, minItems: 1, maxItems: 5 },
   },
-  required: ["scores", "bonus_points", "deductions", "key_strengths", "areas_for_improvement"],
+  required: ["is_resume", "scores", "bonus_points", "deductions", "key_strengths", "areas_for_improvement"],
 };
 
 export const COACH_SCHEMA: GeminiSchema = {
@@ -120,6 +121,8 @@ IMPORTANT: Always check the structured 'profiles' section in the resume data bef
 // with trailing {{ text_content }} replaced by ${resumeText} interpolation.
 function RUBRIC(resumeText: string): string {
   return `You are evaluating a resume for a Software Intern position at HackerRank. Analyze the resume data and provide scores based on these criteria:
+
+**FIRST, DOCUMENT CHECK:** Decide whether the supplied text is actually a resume / CV. Set "is_resume" to false ONLY if it clearly is not — for example a recipe, an invoice, an essay, a manual, a contract, or other unrelated document. If "is_resume" is false, still return valid JSON with every score set to 0 and empty/neutral evidence. For any genuine resume or CV, set "is_resume" to true and score normally.
 
 **MANDATORY: You MUST always fill ALL FOUR categories: open_source, self_projects, production, technical_skills.**
 
@@ -289,6 +292,7 @@ function RUBRIC(resumeText: string): string {
 Analyze the following resume and provide a JSON response with this EXACT structure (all fields are required):
 
 {
+    "is_resume": true,
     "scores": {
         "open_source": {"score": 0, "max": 35, "evidence": "string"},
         "self_projects": {"score": 0, "max": 30, "evidence": "string"},

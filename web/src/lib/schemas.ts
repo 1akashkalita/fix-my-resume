@@ -31,6 +31,9 @@ const CategoryScoreSchema = z.object({
   evidence: z.string().min(1),
 });
 export const EvaluationSchema = z.object({
+  // false only when the document clearly isn't a resume. Optional so older
+  // stored runs (saved before this field existed) still validate.
+  is_resume: z.boolean().optional(),
   scores: z.object({
     open_source: CategoryScoreSchema,
     self_projects: CategoryScoreSchema,

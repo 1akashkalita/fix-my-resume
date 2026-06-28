@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 /**
  * A modal with numbered, step-by-step instructions, opened by a trigger. The
@@ -21,14 +21,52 @@ export function HowTo({
 }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
+  // While open: lock background scroll, keep focus inside the dialog (Esc to
+  // close, Tab wraps), and restore focus to the trigger on close. This makes the
+  // aria-modal="true" contract real for keyboard and screen-reader users.
   useEffect(() => {
     if (!open) return;
+    triggerRef.current = (document.activeElement as HTMLElement) ?? null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusables = (): HTMLElement[] =>
+      dialogRef.current
+        ? Array.from(
+            dialogRef.current.querySelectorAll<HTMLElement>(
+              'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])',
+            ),
+          )
+        : [];
+    focusables()[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        const items = focusables();
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      triggerRef.current?.focus?.();
+    };
   }, [open]);
 
   return (
@@ -52,14 +90,14 @@ export function HowTo({
             if (e.target === e.currentTarget) setOpen(false);
           }}
         >
-          <div className="ha-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+          <div ref={dialogRef} className="ha-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
             <button className="ha-modal-x" aria-label="Close" onClick={() => setOpen(false)}>
               ×
             </button>
             <div className="eyebrow">{eyebrow}</div>
-            <h3 id={titleId} className="serif ha-modal-title">
+            <h2 id={titleId} className="serif ha-modal-title">
               {title}
-            </h3>
+            </h2>
             <ul className="ha-plist">
               {steps.map((step, i) => (
                 <li key={i}>

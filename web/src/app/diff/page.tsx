@@ -5,7 +5,7 @@ import { DiffScreen } from "@/ui/screens/DiffScreen";
 
 export default function Page() {
   return (
-    <AppShell active="score">
+    <AppShell active="history">
       <Suspense fallback={<p className="eyebrow">Loading…</p>}>
         <DiffScreen />
       </Suspense>

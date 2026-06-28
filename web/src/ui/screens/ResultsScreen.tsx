@@ -92,8 +92,9 @@ export function ResultsScreen() {
       </div>
 
       <style>{`
-        .layout{display:grid;grid-template-columns:212px 1fr;gap:30px;margin-top:26px}
-        .report-head .eyebrow{margin-bottom:10px}
+        .layout{display:grid;grid-template-columns:212px minmax(0,1fr);gap:30px;margin-top:26px}
+        .report{min-width:0}
+        .report-head .eyebrow{margin-bottom:10px;overflow-wrap:anywhere}
         .verdict{font-weight:400;font-size:clamp(26px,3.2vw,38px);line-height:1.16;letter-spacing:.1px;margin:0 0 4px;max-width:42ch}
         .verdict em{font-style:italic;color:var(--brand-ink)}
         .scorebar{display:flex;align-items:flex-end;gap:18px;margin:22px 0 28px;padding:18px 20px;background:var(--panel);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow);position:relative;overflow:hidden;background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:22px 22px;background-position:right -1px bottom -1px}
@@ -104,7 +105,7 @@ export function ResultsScreen() {
         .total-side{padding-bottom:6px}
         .total-side .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);display:block}
         .total-side .delta{font-size:18px;margin-top:2px;display:block}
-        @media(max-width:760px){ .layout{grid-template-columns:1fr} }
+        @media(max-width:760px){ .layout{grid-template-columns:1fr} .report{order:-1} }
       `}</style>
     </div>
   );

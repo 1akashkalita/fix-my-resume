@@ -3,3 +3,6 @@ export class RateLimitError extends Error { constructor(msg = "Gemini rate limit
 export class ModelOverloadedError extends Error { constructor(msg = "The model is overloaded (high demand).") { super(msg); this.name = "ModelOverloadedError"; } }
 export class ModelOutputError extends Error { constructor(msg = "Model returned invalid output.") { super(msg); this.name = "ModelOutputError"; } }
 export class NoTextError extends Error { constructor() { super("This PDF has no selectable text (image-only PDFs aren't supported)."); this.name = "NoTextError"; } }
+export class InvalidKeyError extends Error { constructor(msg = "Gemini rejected the API key.") { super(msg); this.name = "InvalidKeyError"; } }
+export class OfflineError extends Error { constructor(msg = "Could not reach Google — you appear to be offline.") { super(msg); this.name = "OfflineError"; } }
+export class NotAResumeError extends Error { constructor(msg = "The uploaded document doesn't look like a resume.") { super(msg); this.name = "NotAResumeError"; } }
