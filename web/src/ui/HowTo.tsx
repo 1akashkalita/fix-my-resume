@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 /**
  * A modal with numbered, step-by-step instructions, opened by a trigger. The
@@ -23,6 +24,7 @@ export function HowTo({
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const reduce = useReducedMotion();
 
   // While open: lock background scroll, keep focus inside the dialog (Esc to
   // close, Tab wraps), and restore focus to the trigger on close. This makes the
@@ -83,33 +85,49 @@ export function HowTo({
           how?
         </button>
       )}
-      {open && (
-        <div
-          className="ha-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <div ref={dialogRef} className="ha-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-            <button className="ha-modal-x" aria-label="Close" onClick={() => setOpen(false)}>
-              ×
-            </button>
-            <div className="eyebrow">{eyebrow}</div>
-            <h2 id={titleId} className="serif ha-modal-title">
-              {title}
-            </h2>
-            <ul className="ha-plist">
-              {steps.map((step, i) => (
-                <li key={i}>
-                  <span className="ha-pk mono">{String(i + 1).padStart(2, "0")}</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ul>
-            {foot && <p className="ha-modal-foot mono">{foot}</p>}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="ha-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setOpen(false);
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.18 }}
+          >
+            <motion.div
+              ref={dialogRef}
+              className="ha-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 8 }}
+              animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.98, y: 6 }}
+              transition={{ duration: reduce ? 0 : 0.2, ease: [0.22, 0.61, 0.36, 1] }}
+            >
+              <button className="ha-modal-x" aria-label="Close" onClick={() => setOpen(false)}>
+                ×
+              </button>
+              <div className="eyebrow">{eyebrow}</div>
+              <h2 id={titleId} className="serif ha-modal-title">
+                {title}
+              </h2>
+              <ul className="ha-plist">
+                {steps.map((step, i) => (
+                  <li key={i}>
+                    <span className="ha-pk mono">{String(i + 1).padStart(2, "0")}</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
+              {foot && <p className="ha-modal-foot mono">{foot}</p>}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

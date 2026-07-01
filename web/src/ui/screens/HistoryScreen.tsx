@@ -1,6 +1,7 @@
 // web/src/ui/screens/HistoryScreen.tsx
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import type { RunRecord } from "../../lib/schemas";
 import { CATEGORY_KEYS } from "../../lib/schemas";
@@ -13,6 +14,7 @@ import { Sparkline } from "../Sparkline";
 import { HistoryTable } from "../HistoryTable";
 import { EmptyState } from "../EmptyState";
 import { Delta } from "../Delta";
+import { fadeUp, useReveal, useStagger } from "../motion";
 
 function formatShort(ts: number | null): string {
   return ts === null ? "—" : shortDate(ts);
@@ -61,6 +63,13 @@ export function HistoryScreen() {
     [reload],
   );
 
+  // Hoisted before the early returns below: these hooks call useReducedMotion
+  // internally, so they must run on every render in stable order (Rules of Hooks).
+  const revealNow = useReveal(true);
+  const staggerNow = useStagger(true);
+  const revealOnScroll = useReveal();
+  const staggerOnScroll = useStagger();
+
   if (error) {
     return <EmptyState message={error} />;
   }
@@ -69,7 +78,7 @@ export function HistoryScreen() {
 
   if (runs.length === 0) {
     return (
-      <div className="ha-empty">
+      <motion.div className="ha-empty" {...revealNow}>
         <div className="eyebrow">History &amp; Trends</div>
         <h1 className="serif ha-empty-title">No runs yet.</h1>
         <p className="ha-empty-text">Score a resume to start tracking your progress over time.</p>
@@ -84,7 +93,7 @@ export function HistoryScreen() {
           .ha-empty-cta:hover{border-color:var(--brand)}
           .ha-empty-cta:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
         `}</style>
-      </div>
+      </motion.div>
     );
   }
 
@@ -95,15 +104,15 @@ export function HistoryScreen() {
 
   return (
     <>
-      <div className="ha-page-head">
+      <motion.div className="ha-page-head" {...revealNow}>
         <div>
           <div className="eyebrow">History &amp; Trends</div>
           <h1 className="serif ha-page-title">Your resume, over time.</h1>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="ha-stats">
-        <div className="ha-stat">
+      <motion.div className="ha-stats" {...staggerNow}>
+        <motion.div className="ha-stat" variants={fadeUp}>
           <div className="ha-stat-lbl">Latest score</div>
           <div className="ha-stat-val">
             {summary.latest}
@@ -112,8 +121,8 @@ export function HistoryScreen() {
           <div className="ha-stat-sub">
             <Delta value={lastDelta} suffix="vs. last" />
           </div>
-        </div>
-        <div className="ha-stat">
+        </motion.div>
+        <motion.div className="ha-stat" variants={fadeUp}>
           <div className="ha-stat-lbl">Personal best</div>
           <div className="ha-stat-val">
             {summary.personalBest}
@@ -122,24 +131,24 @@ export function HistoryScreen() {
           <div className="ha-stat-sub">
             {summary.personalBest === summary.latest ? "Also the latest" : "Across all runs"}
           </div>
-        </div>
-        <div className="ha-stat">
+        </motion.div>
+        <motion.div className="ha-stat" variants={fadeUp}>
           <div className="ha-stat-lbl">Net change</div>
           <div className="ha-stat-val">
             <Delta value={summary.netChange} />
           </div>
           <div className="ha-stat-sub">Since your first run</div>
-        </div>
-        <div className="ha-stat">
+        </motion.div>
+        <motion.div className="ha-stat" variants={fadeUp}>
           <div className="ha-stat-lbl">Runs</div>
           <div className="ha-stat-val">{summary.runCount}</div>
           <div className="ha-stat-sub">
             {formatShort(summary.firstAt)} → {formatShort(summary.lastAt)}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div className="ha-panel">
+      <motion.div className="ha-panel" {...revealOnScroll}>
         <div className="ha-panel-head">
           <div className="ha-panel-title serif">Total score</div>
           <div className="ha-panel-note">
@@ -147,16 +156,16 @@ export function HistoryScreen() {
           </div>
         </div>
         <TotalChart series={series} />
-      </div>
+      </motion.div>
 
-      <div className="ha-spark-grid">
+      <motion.div className="ha-spark-grid" {...staggerOnScroll}>
         {CATEGORY_KEYS.map((key) => {
           const values = categorySeries(runs, key);
           const latest = values.length > 0 ? values[values.length - 1] : 0;
           const catDelta = values.length >= 2 ? latest - values[values.length - 2] : null;
           const status = statusFor(latest, CATEGORY_MAX[key]);
           return (
-            <div className="ha-spark" key={key}>
+            <motion.div className="ha-spark" key={key} variants={fadeUp}>
               <div className="ha-spark-name">{key.toUpperCase()}</div>
               <div className="ha-spark-row">
                 <span className="ha-spark-val">
@@ -166,15 +175,15 @@ export function HistoryScreen() {
                 <Delta value={catDelta} />
               </div>
               <Sparkline values={values} status={status} />
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
-      <div className="ha-history">
+      <motion.div className="ha-history" {...revealOnScroll}>
         <div className="eyebrow ha-history-eyebrow">Run history</div>
         <HistoryTable runs={runs} onRename={handleRename} onDelete={handleDelete} />
-      </div>
+      </motion.div>
 
       <style>{`
         .ha-page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:26px 0 22px;flex-wrap:wrap}

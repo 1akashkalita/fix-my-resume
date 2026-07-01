@@ -14,7 +14,7 @@ export function AppShell({
     <div className="wrap">
       <header className="top">
         <div className="mark">
-          Fix My <i>Resume</i>
+          Fix <i>My Resume</i>
         </div>
         <div className="top-right">
           <nav className="nav" aria-label="Primary">

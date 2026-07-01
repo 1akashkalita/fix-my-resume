@@ -1,32 +1,37 @@
 "use client";
+import { motion } from "framer-motion";
 import type { Coach, Evaluation } from "@/lib/schemas";
 import { cappedCategory, CATEGORY_MAX, statusFor } from "@/lib/scoring";
 import { Delta } from "@/ui/Delta";
+import { fadeUp, useStagger } from "@/ui/motion";
 
 export function CoachSection({ coach, evaluation }: { coach: Coach; evaluation: Evaluation }) {
   return (
-    <section className="coach">
-      <div className="eyebrow">Coach · what to fix next</div>
-      {coach.fixes.length > 0 ? (
-        <>
-          <h2 className="coach-sub serif">Biggest score left on the table</h2>
-          <p className="coach-note">High-impact fixes, in priority order.</p>
-        </>
-      ) : (
-        <>
-          <h2 className="coach-sub serif">Nothing urgent to fix</h2>
-          <p className="coach-note">
-            {coach.boosts.length > 0
-              ? "Your strongest categories are already near the cap — see the small boosts below."
-              : "This resume scores well across the board — no high-impact fixes stand out."}
-          </p>
-        </>
-      )}
+    <motion.section className="coach" {...useStagger()}>
+      <motion.div variants={fadeUp}>
+        <div className="eyebrow">Coach · what to fix next</div>
+        {coach.fixes.length > 0 ? (
+          <>
+            <h2 className="coach-sub serif">Biggest score left on the table</h2>
+            <p className="coach-note">High-impact fixes, in priority order.</p>
+          </>
+        ) : (
+          <>
+            <h2 className="coach-sub serif">Nothing urgent to fix</h2>
+            <p className="coach-note">
+              {coach.boosts.length > 0
+                ? "Your strongest categories are already near the cap — see the small boosts below."
+                : "This resume scores well across the board — no high-impact fixes stand out."}
+            </p>
+          </>
+        )}
+      </motion.div>
 
       {coach.fixes.map((fix, i) => (
-        <div
+        <motion.div
           className="fix"
           key={i}
+          variants={fadeUp}
           style={{
             ["--accent" as string]: `var(--${statusFor(cappedCategory(evaluation, fix.category), CATEGORY_MAX[fix.category])})`,
           }}
@@ -42,11 +47,11 @@ export function CoachSection({ coach, evaluation }: { coach: Coach; evaluation: 
           <div className="gain">
             <Delta value={fix.estGain} />
           </div>
-        </div>
+        </motion.div>
       ))}
 
       {coach.boosts.length > 0 && (
-        <div className="boosts">
+        <motion.div className="boosts" variants={fadeUp}>
           <h2 className="coach-sub serif">Small boosts</h2>
           <p className="coach-note">Polish for categories that are already strong — a point or two each.</p>
           {coach.boosts.map((b, i) => (
@@ -58,7 +63,7 @@ export function CoachSection({ coach, evaluation }: { coach: Coach; evaluation: 
               </span>
             </div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <style>{`
@@ -80,6 +85,6 @@ export function CoachSection({ coach, evaluation }: { coach: Coach; evaluation: 
         .boost-text{font-size:17px;line-height:1.3;color:var(--ink)}
         .boost-gain .delta{font-size:13px;white-space:nowrap}
       `}</style>
-    </section>
+    </motion.section>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 // Resumes are tiny; a huge PDF is almost always the wrong file (a scanned
 // portfolio, a slide deck) and would freeze the tab parsing in-browser.
@@ -24,6 +25,7 @@ export function Dropzone({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const reduce = useReducedMotion();
 
   function pick() {
     if (!disabled) inputRef.current?.click();
@@ -82,26 +84,33 @@ export function Dropzone({
           e.target.value = "";
         }}
       />
-      <svg className="ha-dz-ico" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 16V4M7 9l5-5 5 5" />
-        <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
-      </svg>
+      <motion.div
+        className="ha-dz-badge"
+        animate={reduce ? undefined : { y: [0, -5, 0] }}
+        transition={reduce ? undefined : { duration: 3.4, ease: "easeInOut", repeat: Infinity }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 16V4M12 4l-5 5M12 4l5 5" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </svg>
+      </motion.div>
       <div className="ha-dz-title serif">Drop your resume PDF</div>
       <div className="ha-dz-sub mono">or click to browse · stays in your browser</div>
       <style>{`
-        .ha-dz{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-          min-height:240px;padding:40px 24px;border:1.5px dashed var(--rule);border-radius:16px;
-          background:var(--panel);color:var(--ink-soft);cursor:pointer;text-align:center;
-          transition:border-color .18s ease,background .18s ease,transform .18s ease}
+        .ha-dz{margin-top:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          padding:74px 28px;border:1.5px dashed var(--rule);border-radius:18px;
+          background:var(--panel);color:var(--ink-soft);cursor:pointer;text-align:center;box-shadow:var(--shadow);
+          transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
         .ha-dz:hover{border-color:var(--brand);background:var(--brand-tint)}
-        .ha-dz.over{border-color:var(--brand);background:var(--brand-tint);transform:scale(1.005)}
+        .ha-dz.over{border-color:var(--brand);background:var(--brand-tint);box-shadow:0 8px 30px rgba(58,45,208,.14)}
         .ha-dz:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
         .ha-dz.off{cursor:not-allowed;opacity:.55}
-        .ha-dz.off:hover{border-color:var(--rule);background:var(--panel);transform:none}
-        .ha-dz-ico{width:34px;height:34px;color:var(--brand-ink)}
-        .ha-dz-title{font-size:22px;color:var(--ink)}
-        .ha-dz-sub{font-size:12px;color:var(--ink-soft)}
-        @media (prefers-reduced-motion: reduce){ .ha-dz{transition:none} .ha-dz.over{transform:none} }
+        .ha-dz.off:hover{border-color:var(--rule);background:var(--panel);box-shadow:var(--shadow)}
+        .ha-dz-badge{width:54px;height:54px;border-radius:14px;background:var(--brand-tint);
+          display:flex;align-items:center;justify-content:center}
+        .ha-dz-title{font-size:27px;color:var(--ink);margin-top:16px}
+        .ha-dz-sub{font-size:12.5px;letter-spacing:.02em;color:var(--ink-soft);margin-top:10px}
+        @media (prefers-reduced-motion: reduce){ .ha-dz{transition:none} }
       `}</style>
     </div>
   );

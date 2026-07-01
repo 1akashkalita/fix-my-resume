@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import type { RunRecord } from "@/lib/schemas";
 import { computeTotal, MAX_TOTAL } from "@/lib/scoring";
 import { Delta } from "@/ui/Delta";
+import { fadeUp, MotionLink, useStagger } from "@/ui/motion";
 
 function fmtDate(ms: number): string {
   const d = new Date(ms);
@@ -25,7 +27,7 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
   return (
     <aside className="rail">
       <div className="eyebrow">Revisions</div>
-      <div className="runs">
+      <motion.div className="runs" {...useStagger(true)}>
         {[...rows].reverse().map(({ run, prev, total, delta }) => {
           const isCur = run.id === currentId;
           const body = (
@@ -44,7 +46,7 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
           // the compare-to-previous action. Every other revision links to its report.
           if (isCur) {
             return (
-              <div key={run.id} className="run cur">
+              <motion.div key={run.id} className="run cur" variants={fadeUp}>
                 {body}
                 {prev && (
                   <Link
@@ -55,22 +57,27 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
                     <span aria-hidden="true">⇄</span> diff
                   </Link>
                 )}
-              </div>
+              </motion.div>
             );
           }
           return (
-            <Link
+            <MotionLink
               key={run.id}
               className="run run-link"
               href={`/results?run=${run.id}`}
               aria-label={`View ${run.label || run.fileName}`}
+              variants={fadeUp}
             >
               {body}
-            </Link>
+            </MotionLink>
           );
         })}
-      </div>
+      </motion.div>
+      <Link href="/" className="rail-again mono">
+        <span aria-hidden="true">↻</span> score another
+      </Link>
       <style>{`
+        .rail{position:sticky;top:26px}
         .rail .eyebrow{margin-bottom:16px}
         .runs{position:relative;padding-left:18px}
         .runs:before{content:"";position:absolute;left:4px;top:6px;bottom:14px;width:2px;background:var(--rule)}
@@ -89,8 +96,11 @@ export function RevisionRail({ runs, currentId }: { runs: RunRecord[]; currentId
         .compare{display:inline-block;margin-top:6px;font-size:11px;color:var(--brand-ink);border:1px dashed var(--brand);border-radius:7px;padding:7px 9px;background:var(--brand-tint);text-decoration:none;transition:background .15s ease,color .15s ease}
         .compare:hover{background:var(--brand);color:var(--paper)}
         .compare:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-        @media (prefers-reduced-motion: reduce){ .compare{transition:none} }
-        @media(max-width:760px){ .runs:before{display:none} }
+        .rail-again{display:inline-block;margin-top:26px;background:var(--panel);border:1px solid var(--rule);border-radius:9px;padding:9px 14px;font-size:11.5px;letter-spacing:.02em;color:var(--ink);text-decoration:none;transition:border-color .15s ease,color .15s ease}
+        .rail-again:hover{border-color:var(--brand);color:var(--brand-ink)}
+        .rail-again:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+        @media (prefers-reduced-motion: reduce){ .compare,.rail-again{transition:none} }
+        @media(max-width:760px){ .rail{position:static} .runs:before{display:none} }
       `}</style>
     </aside>
   );
